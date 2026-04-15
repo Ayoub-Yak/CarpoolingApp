@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" spacing="20" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.covoiturage.controller.LoginController"
+      style="-fx-background-color: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);"
+      prefWidth="900" prefHeight="600">
+
+    <!-- Title -->
+    <VBox alignment="CENTER" spacing="5">
+        <Label text="🚗 Covoiturage" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+        <Label text="Plateforme de Covoiturage" style="-fx-font-size: 14px; -fx-text-fill: #a8a8b3;"/>
+    </VBox>
+
+    <!-- Login Card -->
+    <VBox alignment="CENTER" spacing="15" maxWidth="400"
+          style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 5);">
+
+        <Label text="Connexion" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+        <TextField fx:id="emailField" promptText="📧 Adresse email"
+                   style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14px;"
+                   maxWidth="320"/>
+
+        <PasswordField fx:id="passwordField" promptText="🔒 Mot de passe"
+                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14px;"
+                       maxWidth="320"/>
+
+        <Label fx:id="errorLabel" text="" style="-fx-text-fill: #e94560; -fx-font-size: 12px;" wrapText="true" maxWidth="320"/>
+
+        <Button text="Se connecter" onAction="#handleLogin"
+                style="-fx-background-color: #e94560; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"
+                maxWidth="320"/>
+
+        <Separator style="-fx-background-color: rgba(255,255,255,0.2);"/>
+
+        <Label text="Pas encore de compte ?" style="-fx-text-fill: #a8a8b3; -fx-font-size: 13px;"/>
+
+        <Button text="Créer un compte" onAction="#handleGoToSignUp"
+                style="-fx-background-color: transparent; -fx-text-fill: #e94560; -fx-font-size: 14px; -fx-font-weight: bold; -fx-border-color: #e94560; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 30; -fx-cursor: hand;"
+                maxWidth="320"/>
+    </VBox>
+
+    <!-- Admin hint -->
+    <Label text="Admin: admin@covoiturage.com / admin123" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
+
+</VBox>

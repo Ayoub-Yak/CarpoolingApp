@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.covoiturage.controller.DriverDashboardController"
+            style="-fx-background-color: #1a1a2e;">
+
+    <!-- Top Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15"
+              style="-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 15 25;">
+            <Label text="🚗 CovoiturApp" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+            <Label text="— Chauffeur" style="-fx-font-size: 16px; -fx-text-fill: #4ecca3;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="welcomeLabel" text="Bienvenue, Chauffeur"
+                   style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+            <Label fx:id="soldeLabel" text="Solde: 0.0 DT"
+                   style="-fx-text-fill: #4ecca3; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Button text="🚪 Déconnexion" onAction="#handleLogout"
+                    style="-fx-background-color: rgba(233,69,96,0.2); -fx-text-fill: #e94560; -fx-background-radius: 8; -fx-padding: 8 15; -fx-cursor: hand;"/>
+        </HBox>
+    </top>
+
+    <!-- Center with Tabs -->
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: #1a1a2e;">
+
+            <!-- Tab 1: Proposer un Trajet -->
+            <Tab text="➕ Proposer un Trajet">
+                <VBox spacing="15" style="-fx-padding: 25;">
+                    <Label text="Nouveau Trajet" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+                    <HBox spacing="15">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Ville de départ" style="-fx-text-fill: #a8a8b3;"/>
+                            <TextField fx:id="departField" promptText="Ex: Tunis"
+                                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Ville d'arrivée" style="-fx-text-fill: #a8a8b3;"/>
+                            <TextField fx:id="arriveeField" promptText="Ex: Sfax"
+                                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="15">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Date (AAAA-MM-JJ)" style="-fx-text-fill: #a8a8b3;"/>
+                            <DatePicker fx:id="datePicker"
+                                        style="-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 8; -fx-padding: 5;"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Heure (HH:MM)" style="-fx-text-fill: #a8a8b3;"/>
+                            <TextField fx:id="heureField" promptText="Ex: 08:30"
+                                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="15">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Prix par place (DT)" style="-fx-text-fill: #a8a8b3;"/>
+                            <TextField fx:id="prixField" promptText="Ex: 25.0"
+                                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="Nombre de places" style="-fx-text-fill: #a8a8b3;"/>
+                            <TextField fx:id="placesField" promptText="Ex: 3"
+                                       style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Label fx:id="trajetMessage" text="" style="-fx-text-fill: #4ecca3; -fx-font-size: 13px;"/>
+
+                    <Button text="✅ Publier le trajet" onAction="#handlePublierTrajet"
+                            style="-fx-background-color: #4ecca3; -fx-text-fill: #1a1a2e; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"/>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 2: Mes Trajets -->
+            <Tab text="📋 Mes Trajets">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <Label text="Trajets Proposés" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+                    <TableView fx:id="mesTrajetsTable" style="-fx-background-color: rgba(255,255,255,0.05);"
+                               VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colDepart" text="Départ" prefWidth="120"/>
+                            <TableColumn fx:id="colArrivee" text="Arrivée" prefWidth="120"/>
+                            <TableColumn fx:id="colDate" text="Date/Heure" prefWidth="160"/>
+                            <TableColumn fx:id="colPrix" text="Prix (DT)" prefWidth="90"/>
+                            <TableColumn fx:id="colPlaces" text="Places Dispo" prefWidth="100"/>
+                            <TableColumn fx:id="colStatut" text="Statut" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="🔄 Rafraîchir" onAction="#handleRefreshTrajets"
+                                style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                        <Button text="❌ Annuler le trajet" onAction="#handleAnnulerTrajet"
+                                style="-fx-background-color: rgba(233,69,96,0.2); -fx-text-fill: #e94560; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Label fx:id="mesTrajetMessage" text="" style="-fx-text-fill: #4ecca3; -fx-font-size: 13px;"/>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 3: Réservations sur mes Trajets -->
+            <Tab text="📨 Réservations Reçues">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <Label text="Réservations sur mes trajets" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+                    <TableView fx:id="reservationsTable" style="-fx-background-color: rgba(255,255,255,0.05);"
+                               VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colResId" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="colResPassager" text="Passager" prefWidth="150"/>
+                            <TableColumn fx:id="colResTrajet" text="Trajet" prefWidth="180"/>
+                            <TableColumn fx:id="colResDate" text="Date" prefWidth="140"/>
+                            <TableColumn fx:id="colResStatut" text="Statut" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="🔄 Rafraîchir" onAction="#handleRefreshReservations"
+                                style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                        <Button text="✅ Accepter" onAction="#handleAccepterReservation"
+                                style="-fx-background-color: rgba(78,204,163,0.2); -fx-text-fill: #4ecca3; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                        <Button text="❌ Refuser" onAction="#handleRefuserReservation"
+                                style="-fx-background-color: rgba(233,69,96,0.2); -fx-text-fill: #e94560; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Label fx:id="resMessage" text="" style="-fx-text-fill: #4ecca3; -fx-font-size: 13px;"/>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 4: Mes Véhicules -->
+            <Tab text="🚙 Mes Véhicules">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <Label text="Gestion des Véhicules" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+                    <HBox spacing="10">
+                        <TextField fx:id="marqueField" promptText="Marque"
+                                   style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"
+                                   HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="modeleField" promptText="Modèle"
+                                   style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"
+                                   HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="immatField" promptText="Immatriculation"
+                                   style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"
+                                   HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="placesVehField" promptText="Places"
+                                   style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #a8a8b3; -fx-background-radius: 8; -fx-padding: 10;"
+                                   prefWidth="80"/>
+                        <Button text="➕ Ajouter" onAction="#handleAjouterVehicule"
+                                style="-fx-background-color: #4ecca3; -fx-text-fill: #1a1a2e; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <TableView fx:id="vehiculesTable" style="-fx-background-color: rgba(255,255,255,0.05);"
+                               VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colVehId" text="ID" prefWidth="50"/>
+                            <TableColumn fx:id="colMarque" text="Marque" prefWidth="130"/>
+                            <TableColumn fx:id="colModele" text="Modèle" prefWidth="130"/>
+                            <TableColumn fx:id="colImmat" text="Immatriculation" prefWidth="150"/>
+                            <TableColumn fx:id="colPlacesVeh" text="Places" prefWidth="80"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="🗑️ Supprimer" onAction="#handleSupprimerVehicule"
+                                style="-fx-background-color: rgba(233,69,96,0.2); -fx-text-fill: #e94560; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Label fx:id="vehiculeMessage" text="" style="-fx-text-fill: #4ecca3; -fx-font-size: 13px;"/>
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>
