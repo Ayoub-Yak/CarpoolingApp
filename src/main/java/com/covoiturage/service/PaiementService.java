@@ -6,6 +6,9 @@ import com.covoiturage.model.Paiement;
 import com.covoiturage.model.Reservation;
 import com.covoiturage.model.enums.StatutPaiement;
 
+import com.covoiturage.dao.ReservationDao;
+import com.covoiturage.dao.ReservationDaoImpl;
+
 /**
  * Service de paiement.
  * Suit le cycle : Autorisation → Capture → (Remboursement | Annulation)
@@ -13,9 +16,13 @@ import com.covoiturage.model.enums.StatutPaiement;
 public class PaiementService {
 
     private final PaiementDao paiementDao;
+    private final ReservationDao reservationDao;
+    private final NotificationService notificationService;
 
     public PaiementService() {
         this.paiementDao = new PaiementDaoImpl();
+        this.reservationDao = new ReservationDaoImpl();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -26,6 +33,10 @@ public class PaiementService {
         Paiement paiement = new Paiement(montant, reservation.getId());
         paiement.setStatut(StatutPaiement.AUTORISE);
         paiementDao.save(paiement);
+        
+        notificationService.envoyerNotification(reservation.getPassagerId(), 
+            "Paiement de " + montant + " € autorisé pour votre réservation.");
+            
         return paiement;
     }
 
@@ -46,6 +57,12 @@ public class PaiementService {
         paiement.setStatut(StatutPaiement.REMBOURSE);
         paiement.setMontant(montant);
         paiementDao.update(paiement);
+        
+        Reservation r = reservationDao.findById(paiement.getReservationId());
+        if (r != null) {
+            notificationService.envoyerNotification(r.getPassagerId(), 
+                "Remboursement de " + String.format("%.2f", montant) + " € effectué sur votre compte.");
+        }
     }
 
     /**

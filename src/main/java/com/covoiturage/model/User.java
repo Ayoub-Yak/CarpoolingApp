@@ -55,7 +55,7 @@ public abstract class User {
             resetLoginAttempts();
             return true;
         } else {
-            incrementerLoginAttempts();
+            incrementerLoginAttempts(this.getType());
             return false;
         }
     }
@@ -64,7 +64,12 @@ public abstract class User {
      * Incrémente le compteur de tentatives de connexion.
      * Si le compteur dépasse 3, le compte est bloqué.
      */
-    public void incrementerLoginAttempts() {
+    public void incrementerLoginAttempts(String userType) {
+        if("ADMIN".equals(userType)) {
+            // Les comptes admin ne sont jamais bloqués
+            return;
+        }
+
         this.loginAttempts++;
         if (this.loginAttempts > 3) {
             this.statutCompte = StatutCompte.BLOQUE;

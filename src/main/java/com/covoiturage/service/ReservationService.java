@@ -22,10 +22,12 @@ public class ReservationService {
 
     private final ReservationDao reservationDao;
     private final TrajetDao trajetDao;
+    private final NotificationService notificationService;
 
     public ReservationService() {
         this.reservationDao = new ReservationDaoImpl();
         this.trajetDao = new TrajetDaoImpl();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -49,6 +51,10 @@ public class ReservationService {
         trajet.ajouterPassager(reservation);
         trajetDao.update(trajet);
 
+        // Notifier le chauffeur
+        notificationService.envoyerNotification(trajet.getChauffeurId(), 
+            "Nouvelle réservation reçue du passager #" + passager.getId() + " pour le trajet " + trajet.getVilleDepart() + " → " + trajet.getVilleArrivee());
+
         return reservation;
     }
 
@@ -58,6 +64,27 @@ public class ReservationService {
     public void confirmerReservation(Reservation reservation) {
         reservation.setStatut(StatutReservation.ACCEPTEE);
         reservationDao.update(reservation);
+
+        // Notifier le passager
+        notificationService.envoyerNotification(reservation.getPassagerId(), 
+            "Votre réservation pour le trajet #" + reservation.getTrajetId() + " a été ACCEPTÉE.");
+    }
+
+    /**
+     * Refuse une réservation (par le chauffeur).
+     */
+    public void refuserReservation(Reservation reservation) {
+        reservation.setStatut(StatutReservation.REFUSEE);
+        reservationDao.update(reservation);
+
+        // Libérer la place sur le trajet
+        Trajet trajet = trajetDao.findById(reservation.getTrajetId());
+        trajet.retirerPassager(reservation);
+        trajetDao.update(trajet);
+
+        // Notifier le passager
+        notificationService.envoyerNotification(reservation.getPassagerId(), 
+            "Désolé, votre réservation pour le trajet #" + reservation.getTrajetId() + " a été REFUSÉE.");
     }
 
     /**
@@ -80,11 +107,17 @@ public class ReservationService {
 
         // Règle des 24h
         long heuresAvantDepart = ChronoUnit.HOURS.between(LocalDateTime.now(), trajet.getDateHeureDepart());
-        if (heuresAvantDepart >= 24) {
-            return 100; // Remboursement intégral
-        } else {
-            return 50; // Remboursement partiel
-        }
+        int refundPercent = (heuresAvantDepart >= 24) ? 100 : 50;
+        
+        // Notifier le passager du remboursement
+        notificationService.envoyerNotification(passager.getId(), 
+            "Réservation annulée. Remboursement de " + refundPercent + "% traité.");
+        
+        // Notifier le chauffeur
+        notificationService.envoyerNotification(trajet.getChauffeurId(), 
+            "Le passager #" + passager.getId() + " a annulé sa réservation sur votre trajet.");
+
+        return refundPercent;
     }
 
     /**
@@ -106,9 +139,19 @@ public class ReservationService {
 
                 if (heuresAvantDepart < 24) {
                     // Pénalité de 20% par passager
-                    penaliteTotal += trajet.getPrixPlace() * 0.20;
+                    double p = trajet.getPrixPlace() * 0.20;
+                    penaliteTotal += p;
                 }
+                
+                // Notifier chaque passager
+                notificationService.envoyerNotification(r.getPassagerId(), 
+                    "Le chauffeur a annulé le trajet #" + trajet.getId() + ". Vous serez remboursé intégralement.");
             }
+        }
+
+        if (penaliteTotal > 0) {
+            notificationService.envoyerNotification(trajet.getChauffeurId(), 
+                "Trajet annulé < 24h. Pénalité totale appliquée : " + String.format("%.2f", penaliteTotal) + " €");
         }
 
         trajet.setStatut(StatutTrajet.ANNULE);

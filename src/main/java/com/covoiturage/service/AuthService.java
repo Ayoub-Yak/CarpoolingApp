@@ -11,9 +11,11 @@ import com.covoiturage.model.enums.StatutCompte;
 public class AuthService {
 
     private final UserDao userDao;
+    private final NotificationService notificationService;
 
     public AuthService() {
         this.userDao = new UserDaoImpl();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -55,6 +57,8 @@ public class AuthService {
         } else {
             userDao.update(user); // Save incremented login attempts
             if (user.getStatutCompte() == StatutCompte.BLOQUE) {
+                notificationService.envoyerNotification(user, 
+                    "Votre compte a été bloqué après 3 tentatives de connexion échouées.");
                 throw new IllegalStateException(
                     "Trop de tentatives échouées. Votre compte a été bloqué."
                 );
@@ -69,6 +73,7 @@ public class AuthService {
     public void bloquerUtilisateur(User user) {
         user.setStatutCompte(StatutCompte.BLOQUE);
         userDao.update(user);
+        notificationService.envoyerNotification(user, "Votre compte a été bloqué par l'administrateur.");
     }
 
     /**
@@ -77,6 +82,7 @@ public class AuthService {
     public void suspendreCompte(Admin admin, User user) {
         user.setStatutCompte(StatutCompte.SUSPENDU);
         userDao.update(user);
+        notificationService.envoyerNotification(user, "Votre compte a été suspendu par l'administrateur.");
     }
 
     /**

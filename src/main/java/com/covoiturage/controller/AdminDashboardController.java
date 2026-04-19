@@ -49,8 +49,15 @@ public class AdminDashboardController {
     @FXML private TableColumn<Trajet, String> colTrajetStatut;
     @FXML private TableColumn<Trajet, String> colTrajetChauffeur;
 
+    // ── Notifications ──────────────────────────────────────────
+    @FXML private TableView<Notification> notificationsTable;
+    @FXML private TableColumn<Notification, String> colNotifDate;
+    @FXML private TableColumn<Notification, String> colNotifMessage;
+    @FXML private TableColumn<Notification, String> colNotifStatut;
+
     private final AuthService authService = new AuthService();
     private final TrajetService trajetService = new TrajetService();
+    private final NotificationService notificationService = new NotificationService();
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @FXML
@@ -60,9 +67,11 @@ public class AdminDashboardController {
 
         setupUsersTable();
         setupTrajetsTable();
+        setupNotificationsTable();
 
         loadUsers();
         loadTrajets();
+        loadNotifications();
     }
 
     // ── User Management ────────────────────────────────────────
@@ -162,6 +171,12 @@ public class AdminDashboardController {
         });
     }
 
+    private void setupNotificationsTable() {
+        colNotifDate.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDateEnvoi().format(DT_FORMAT)));
+        colNotifMessage.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessage()));
+        colNotifStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().isLu() ? "Lu" : "Non lu"));
+    }
+
     // ── Data Loading ───────────────────────────────────────────
 
     private void loadUsers() {
@@ -188,6 +203,29 @@ public class AdminDashboardController {
     private void loadTrajets() {
         List<Trajet> trajets = trajetService.getAllTrajets();
         allTrajetsTable.setItems(FXCollections.observableArrayList(trajets));
+    }
+
+    private void loadNotifications() {
+        Admin admin = (Admin) SessionManager.getInstance().getCurrentUser();
+        List<Notification> list = notificationService.getAllNotifications(admin.getId());
+        notificationsTable.setItems(FXCollections.observableArrayList(list));
+    }
+
+    // ── Notifications Handlers ───────────────────────────────
+
+    @FXML
+    private void handleRefreshNotifications() {
+        loadNotifications();
+    }
+
+    @FXML
+    private void handleMarkAllAsRead() {
+        Admin admin = (Admin) SessionManager.getInstance().getCurrentUser();
+        List<Notification> unread = notificationService.getUnreadNotifications(admin.getId());
+        for (Notification n : unread) {
+            notificationService.marquerCommeLu(n.getId());
+        }
+        loadNotifications();
     }
 
     @FXML

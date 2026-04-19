@@ -33,7 +33,6 @@ public class PassengerDashboardController {
     @FXML private TableColumn<Trajet, String> colStatut;
     @FXML private Label trajetMessage;
 
-    // ── Mes Réservations ───────────────────────────────────────
     @FXML private TableView<Reservation> reservationsTable;
     @FXML private TableColumn<Reservation, Integer> colResId;
     @FXML private TableColumn<Reservation, String> colResTrajet;
@@ -41,10 +40,17 @@ public class PassengerDashboardController {
     @FXML private TableColumn<Reservation, String> colResStatut;
     @FXML private Label reservationMessage;
 
+    // ── Notifications ──────────────────────────────────────────
+    @FXML private TableView<Notification> notificationsTable;
+    @FXML private TableColumn<Notification, String> colNotifDate;
+    @FXML private TableColumn<Notification, String> colNotifMessage;
+    @FXML private TableColumn<Notification, String> colNotifStatut;
+
     private final TrajetService trajetService = new TrajetService();
     private final ReservationService reservationService = new ReservationService();
     private final PaiementService paiementService = new PaiementService();
     private final AuthService authService = new AuthService();
+    private final NotificationService notificationService = new NotificationService();
 
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -74,9 +80,18 @@ public class PassengerDashboardController {
         colResDate.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDateReservation().format(DT_FORMAT)));
         colResStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatut().name()));
 
+        // Setup notifications table
+        colNotifDate.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDateEnvoi().format(DT_FORMAT)));
+        colNotifMessage.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessage()));
+        colNotifStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().isLu() ? "Lu" : "Non lu"));
+
         // Load data
         handleShowAll();
         loadReservations();
+        loadNotifications();
+        
+        // Final account status check
+        checkAccountStatus();
     }
 
     @FXML
@@ -163,6 +178,49 @@ public class PassengerDashboardController {
         reservationMessage.setStyle("-fx-text-fill: #4ecca3; -fx-font-size: 13px;");
         loadReservations();
         handleShowAll();
+        loadNotifications();
+    }
+
+    // ── Notifications Handlers ───────────────────────────────
+
+    @FXML
+    private void handleRefreshNotifications() {
+        if (!checkAccountStatus()) return;
+        loadNotifications();
+    }
+
+    @FXML
+    private void handleMarkAllAsRead() {
+        if (!checkAccountStatus()) return;
+        Passager p = (Passager) SessionManager.getInstance().getCurrentUser();
+        List<Notification> unread = notificationService.getUnreadNotifications(p.getId());
+        for (Notification n : unread) {
+            notificationService.marquerCommeLu(n.getId());
+        }
+        loadNotifications();
+    }
+
+    private void loadNotifications() {
+        Passager p = (Passager) SessionManager.getInstance().getCurrentUser();
+        List<Notification> list = notificationService.getAllNotifications(p.getId());
+        notificationsTable.setItems(FXCollections.observableArrayList(list));
+    }
+
+    /**
+     * Vérifie si le compte est toujours actif. Si bloqué/suspendu, déconnexion forcée.
+     * @return true si le compte est actif.
+     */
+    private boolean checkAccountStatus() {
+        User current = SessionManager.getInstance().getCurrentUser();
+        if (current == null) return false;
+        
+        User dbUser = authService.findById(current.getId());
+        if (dbUser == null || dbUser.getStatutCompte() != com.covoiturage.model.enums.StatutCompte.ACTIF) {
+            NotificationService.showPopup("Accès Refusé", "Votre compte a été bloqué ou suspendu. Déconnexion...");
+            handleLogout();
+            return false;
+        }
+        return true;
     }
 
     private void loadReservations() {

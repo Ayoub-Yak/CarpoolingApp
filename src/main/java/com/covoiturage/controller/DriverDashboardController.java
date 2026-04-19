@@ -27,55 +27,101 @@ import java.util.List;
 public class DriverDashboardController {
 
     // ── Top Bar ────────────────────────────────────────────────
-    @FXML private Label welcomeLabel;
-    @FXML private Label soldeLabel;
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label soldeLabel;
 
     // ── Proposer Trajet ────────────────────────────────────────
-    @FXML private TextField departField;
-    @FXML private TextField arriveeField;
-    @FXML private DatePicker datePicker;
-    @FXML private TextField heureField;
-    @FXML private TextField prixField;
-    @FXML private TextField placesField;
-    @FXML private Label trajetMessage;
+    @FXML
+    private TextField departField;
+    @FXML
+    private TextField arriveeField;
+    @FXML
+    private DatePicker datePicker;
+    @FXML
+    private TextField heureField;
+    @FXML
+    private TextField prixField;
+    @FXML
+    private TextField placesField;
+    @FXML
+    private Label trajetMessage;
 
     // ── Mes Trajets ────────────────────────────────────────────
-    @FXML private TableView<Trajet> mesTrajetsTable;
-    @FXML private TableColumn<Trajet, String> colDepart;
-    @FXML private TableColumn<Trajet, String> colArrivee;
-    @FXML private TableColumn<Trajet, String> colDate;
-    @FXML private TableColumn<Trajet, String> colPrix;
-    @FXML private TableColumn<Trajet, String> colPlaces;
-    @FXML private TableColumn<Trajet, String> colStatut;
-    @FXML private Label mesTrajetMessage;
+    @FXML
+    private TableView<Trajet> mesTrajetsTable;
+    @FXML
+    private TableColumn<Trajet, String> colDepart;
+    @FXML
+    private TableColumn<Trajet, String> colArrivee;
+    @FXML
+    private TableColumn<Trajet, String> colDate;
+    @FXML
+    private TableColumn<Trajet, String> colPrix;
+    @FXML
+    private TableColumn<Trajet, String> colPlaces;
+    @FXML
+    private TableColumn<Trajet, String> colStatut;
+    @FXML
+    private Label mesTrajetMessage;
 
     // ── Réservations Reçues ────────────────────────────────────
-    @FXML private TableView<Reservation> reservationsTable;
-    @FXML private TableColumn<Reservation, Integer> colResId;
-    @FXML private TableColumn<Reservation, String> colResPassager;
-    @FXML private TableColumn<Reservation, String> colResTrajet;
-    @FXML private TableColumn<Reservation, String> colResDate;
-    @FXML private TableColumn<Reservation, String> colResStatut;
-    @FXML private Label resMessage;
+    @FXML
+    private TableView<Reservation> reservationsTable;
+    @FXML
+    private TableColumn<Reservation, Integer> colResId;
+    @FXML
+    private TableColumn<Reservation, String> colResPassager;
+    @FXML
+    private TableColumn<Reservation, String> colResTrajet;
+    @FXML
+    private TableColumn<Reservation, String> colResDate;
+    @FXML
+    private TableColumn<Reservation, String> colResStatut;
+    @FXML
+    private Label resMessage;
 
     // ── Véhicules ──────────────────────────────────────────────
-    @FXML private TextField marqueField;
-    @FXML private TextField modeleField;
-    @FXML private TextField immatField;
-    @FXML private TextField placesVehField;
-    @FXML private TableView<Vehicule> vehiculesTable;
-    @FXML private TableColumn<Vehicule, Integer> colVehId;
-    @FXML private TableColumn<Vehicule, String> colMarque;
-    @FXML private TableColumn<Vehicule, String> colModele;
-    @FXML private TableColumn<Vehicule, String> colImmat;
-    @FXML private TableColumn<Vehicule, Integer> colPlacesVeh;
-    @FXML private Label vehiculeMessage;
+    @FXML
+    private TextField marqueField;
+    @FXML
+    private TextField modeleField;
+    @FXML
+    private TextField immatField;
+    @FXML
+    private TextField placesVehField;
+    @FXML
+    private TableView<Vehicule> vehiculesTable;
+    @FXML
+    private TableColumn<Vehicule, Integer> colVehId;
+    @FXML
+    private TableColumn<Vehicule, String> colMarque;
+    @FXML
+    private TableColumn<Vehicule, String> colModele;
+    @FXML
+    private TableColumn<Vehicule, String> colImmat;
+    @FXML
+    private TableColumn<Vehicule, Integer> colPlacesVeh;
+    @FXML
+    private Label vehiculeMessage;
+
+    // ── Notifications ──────────────────────────────────────────
+    @FXML
+    private TableView<Notification> notificationsTable;
+    @FXML
+    private TableColumn<Notification, String> colNotifDate;
+    @FXML
+    private TableColumn<Notification, String> colNotifMessage;
+    @FXML
+    private TableColumn<Notification, String> colNotifStatut;
 
     private final TrajetService trajetService = new TrajetService();
     private final ReservationService reservationService = new ReservationService();
     private final PaiementService paiementService = new PaiementService();
     private final VehiculeService vehiculeService = new VehiculeService();
     private final AuthService authService = new AuthService();
+    private final NotificationService notificationService = new NotificationService();
 
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -88,10 +134,15 @@ public class DriverDashboardController {
         setupMesTrajetsTable();
         setupReservationsTable();
         setupVehiculesTable();
+        setupNotificationsTable();
 
         loadMesTrajets();
         loadReservations();
         loadVehicules();
+        loadNotifications();
+
+        // Final account status check
+        checkAccountStatus();
     }
 
     // ── Proposer un Trajet ─────────────────────────────────────
@@ -139,6 +190,7 @@ public class DriverDashboardController {
             trajetMessage.setText("❌ Erreur : " + e.getMessage());
             trajetMessage.setStyle("-fx-text-fill: #e94560;");
         }
+        checkAccountStatus();
     }
 
     // ── Mes Trajets ────────────────────────────────────────────
@@ -164,7 +216,6 @@ public class DriverDashboardController {
         }
 
         double penalite = reservationService.annulerReservationsParChauffeur(selected);
-        Chauffeur chauffeur = (Chauffeur) SessionManager.getInstance().getCurrentUser();
 
         if (penalite > 0) {
             mesTrajetMessage.setText("Trajet annulé. Pénalité : " + String.format("%.2f", penalite) + " DT");
@@ -222,8 +273,7 @@ public class DriverDashboardController {
             return;
         }
 
-        selected.setStatut(StatutReservation.REFUSEE);
-        reservationService.update(selected);
+        reservationService.refuserReservation(selected);
 
         // Refund payment
         Paiement paiement = paiementService.findByReservationId(selected.getId());
@@ -231,16 +281,11 @@ public class DriverDashboardController {
             paiementService.annulerPaiement(paiement);
         }
 
-        // Free the seat
-        Trajet trajet = trajetService.findById(selected.getTrajetId());
-        if (trajet != null) {
-            trajet.retirerPassager(selected);
-            trajetService.update(trajet);
-        }
-
         resMessage.setText("❌ Réservation refusée.");
         resMessage.setStyle("-fx-text-fill: #e94560;");
         loadReservations();
+        loadMesTrajets();
+        loadNotifications();
     }
 
     // ── Véhicules ──────────────────────────────────────────────
@@ -297,8 +342,10 @@ public class DriverDashboardController {
     private void setupMesTrajetsTable() {
         colDepart.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getVilleDepart()));
         colArrivee.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getVilleArrivee()));
-        colDate.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDateHeureDepart().format(DT_FORMAT)));
-        colPrix.setCellValueFactory(data -> new SimpleStringProperty(String.format("%.2f", data.getValue().getPrixPlace())));
+        colDate.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().getDateHeureDepart().format(DT_FORMAT)));
+        colPrix.setCellValueFactory(
+                data -> new SimpleStringProperty(String.format("%.2f", data.getValue().getPrixPlace())));
         colPlaces.setCellValueFactory(data -> new SimpleStringProperty(
                 data.getValue().getNbPlacesDisponibles() + "/" + data.getValue().getNbPlacesTotal()));
         colStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatut().name()));
@@ -317,7 +364,8 @@ public class DriverDashboardController {
             }
             return new SimpleStringProperty("N/A");
         });
-        colResDate.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDateReservation().format(DT_FORMAT)));
+        colResDate.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().getDateReservation().format(DT_FORMAT)));
         colResStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatut().name()));
     }
 
@@ -326,7 +374,15 @@ public class DriverDashboardController {
         colMarque.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMarque()));
         colModele.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getModele()));
         colImmat.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getImmatriculation()));
-        colPlacesVeh.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getPlacesDisponibles()).asObject());
+        colPlacesVeh.setCellValueFactory(
+                data -> new SimpleIntegerProperty(data.getValue().getPlacesDisponibles()).asObject());
+    }
+
+    private void setupNotificationsTable() {
+        colNotifDate.setCellValueFactory(
+                data -> new SimpleStringProperty(data.getValue().getDateEnvoi().format(DT_FORMAT)));
+        colNotifMessage.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessage()));
+        colNotifStatut.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().isLu() ? "Lu" : "Non lu"));
     }
 
     // ── Data Loading ───────────────────────────────────────────
@@ -351,6 +407,53 @@ public class DriverDashboardController {
         Chauffeur chauffeur = (Chauffeur) SessionManager.getInstance().getCurrentUser();
         List<Vehicule> vehicules = vehiculeService.getVehiculesByChauffeur(chauffeur.getId());
         vehiculesTable.setItems(FXCollections.observableArrayList(vehicules));
+    }
+
+    private void loadNotifications() {
+        Chauffeur c = (Chauffeur) SessionManager.getInstance().getCurrentUser();
+        List<Notification> list = notificationService.getAllNotifications(c.getId());
+        notificationsTable.setItems(FXCollections.observableArrayList(list));
+    }
+
+    // ── Notifications Handlers ───────────────────────────────
+
+    @FXML
+    private void handleRefreshNotifications() {
+        if (!checkAccountStatus())
+            return;
+        loadNotifications();
+    }
+
+    @FXML
+    private void handleMarkAllAsRead() {
+        if (!checkAccountStatus())
+            return;
+        Chauffeur c = (Chauffeur) SessionManager.getInstance().getCurrentUser();
+        List<Notification> unread = notificationService.getUnreadNotifications(c.getId());
+        for (Notification n : unread) {
+            notificationService.marquerCommeLu(n.getId());
+        }
+        loadNotifications();
+    }
+
+    /**
+     * Vérifie si le compte est toujours actif. Si bloqué/suspendu, déconnexion
+     * forcée.
+     * 
+     * @return true si le compte est actif.
+     */
+    private boolean checkAccountStatus() {
+        User current = SessionManager.getInstance().getCurrentUser();
+        if (current == null)
+            return false;
+
+        User dbUser = authService.findById(current.getId());
+        if (dbUser == null || dbUser.getStatutCompte() != com.covoiturage.model.enums.StatutCompte.ACTIF) {
+            NotificationService.showPopup("Accès Refusé", "Votre compte a été bloqué ou suspendu. Déconnexion...");
+            handleLogout();
+            return false;
+        }
+        return true;
     }
 
     @FXML

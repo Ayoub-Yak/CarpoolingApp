@@ -13,9 +13,11 @@ import java.util.List;
 public class TrajetService {
 
     private final TrajetDao trajetDao;
+    private final NotificationService notificationService;
 
     public TrajetService() {
         this.trajetDao = new TrajetDaoImpl();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -41,6 +43,10 @@ public class TrajetService {
     public void annulerTrajetParChauffeur(Chauffeur chauffeur, Trajet trajet) {
         trajet.setStatut(com.covoiturage.model.enums.StatutTrajet.ANNULE);
         trajetDao.update(trajet);
+        
+        // Les notifications aux passagers sont gérées par ReservationService.annulerReservationsParChauffeur
+        // Mais on peut notifier le chauffeur ici pour confirmation
+        notificationService.envoyerNotification(chauffeur, "Votre trajet #" + trajet.getId() + " a été annulé.");
     }
 
     /**

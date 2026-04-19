@@ -178,6 +178,30 @@
                 </VBox>
             </Tab>
 
+            <!-- Tab 5: Notifications -->
+            <Tab text="🔔 Notifications">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Mes Notifications" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Rafraîchir" onAction="#handleRefreshNotifications"
+                                style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 15; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <TableView fx:id="notificationsTable" style="-fx-background-color: rgba(255,255,255,0.05);"
+                               VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colNotifDate" text="Date" prefWidth="160"/>
+                            <TableColumn fx:id="colNotifMessage" text="Message" prefWidth="450"/>
+                            <TableColumn fx:id="colNotifStatut" text="Statut" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                    
+                    <Button text="Marquer tout comme lu" onAction="#handleMarkAllAsRead"
+                            style="-fx-background-color: rgba(78,204,163,0.2); -fx-text-fill: #4ecca3; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                </VBox>
+            </Tab>
+
         </TabPane>
     </center>
 </BorderPane>

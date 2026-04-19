@@ -4,6 +4,8 @@ import com.covoiturage.App;
 import com.covoiturage.SessionManager;
 import com.covoiturage.model.User;
 import com.covoiturage.service.AuthService;
+import com.covoiturage.service.NotificationService;
+import com.covoiturage.model.Notification;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -22,6 +24,7 @@ public class LoginController {
     @FXML private Label errorLabel;
 
     private final AuthService authService = new AuthService();
+    private final NotificationService notificationService = new NotificationService();
 
     @FXML
     private void handleLogin() {
@@ -40,6 +43,13 @@ public class LoginController {
                 // Store in session
                 SessionManager.getInstance().setCurrentUser(user);
 
+                // Show unread notifications as popups
+                java.util.List<Notification> unread = notificationService.getUnreadNotifications(user.getId());
+                for (Notification n : unread) {
+                    NotificationService.showPopup("Notification", n.getMessage());
+                    notificationService.marquerCommeLu(n.getId());
+                }
+
                 // Redirect based on type
                 switch (user.getType()) {
                     case "ADMIN":
@@ -56,6 +66,7 @@ public class LoginController {
             } else {
                 errorLabel.setText("Email ou mot de passe incorrect.");
                 errorLabel.setStyle("-fx-text-fill: #e94560; -fx-font-size: 12px;");
+                
             }
         } catch (IllegalStateException e) {
             errorLabel.setText(e.getMessage());
@@ -72,5 +83,5 @@ public class LoginController {
         } catch (IOException e) {
             errorLabel.setText("Erreur de chargement de la page d'inscription.");
         }
-    }
+    } 
 }

@@ -1,0 +1,44 @@
+# Notification System Walkthrough
+
+I have successfully implemented a robust, persistent notification system for the CarpoolingApp. This system ensures users stay informed about their bookings, payments, and account status even when they are offline.
+
+## Core Features
+
+### 1. Database Persistence 💾
+Added a `notifications` table to `covoiturage.db` with the following schema:
+- `id`: Unique identifier.
+- `user_id`: Links the notification to a specific user.
+- `message`: The alert text.
+- `date_envoi`: Timestamp of when the alert was generated.
+- `lu`: Boolean flag (0/1) to track if the user has seen the alert.
+
+### 2. Smart Notification Triggers 🔔
+Notifications are now automatically generated during critical business events:
+- **Reservations**:
+    - **Driver** is notified of new bookings.
+    - **Passenger** is notified when a booking is **Accepted** or **Refused**.
+- **Cancellations**:
+    - **Parties** are notified when a trip or reservation is cancelled, with specific details about **Refunds (100%/50%)** or **Penalties**.
+- **Account Security**:
+    - **User** is notified if their account is **Blocked** (3 failed attempts) or **Suspended** by an admin.
+
+### 3. Integrated UI Experience 🖥️
+- **Login Popups**: Upon logging in, any unread notifications stored while the user was offline are displayed as JavaFX Alert popups.
+- **Notification History**: Each dashboard (Passenger, Driver, Admin) now includes a **🔔 Notifications** tab to view your past alerts and mark them as read.
+- **Auto-Logout on Block**: If a user's account is blocked or suspended while they are active, the system will detect the status change, show a final alert, and force a logout to protect the system.
+
+## Technical Details
+
+### Model & DAO
+- [Notification.java](file:///c:/Users/yaako/OneDrive/Bureau/Covoiturage%20Project/CarpoolingApp/src/main/java/com/covoiturage/model/Notification.java): New data model.
+- [NotificationDao.java](file:///c:/Users/yaako/OneDrive/Bureau/Covoiturage%20Project/CarpoolingApp/src/main/java/com/covoiturage/dao/NotificationDao.java): Data access layers for CRUD operations.
+
+### Service Layer
+- [NotificationService.java](file:///c:/Users/yaako/OneDrive/Bureau/Covoiturage%20Project/CarpoolingApp/src/main/java/com/covoiturage/service/NotificationService.java): Central service used by all other services (`Auth`, `Reservation`, `Trajet`, `Paiement`) to dispatch alerts.
+
+---
+
+## Verification Results ✅
+- **Database Schema**: Successfully updated and verified in `DatabaseManager.java`.
+- **Logic Flow**: Verified that cancelling a trip as a driver correctly generates notifications for all affected passengers.
+- **UI Interaction**: Verified that unread notifications appear sequentially as popups on the Login screen.

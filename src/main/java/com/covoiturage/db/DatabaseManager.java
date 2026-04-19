@@ -126,6 +126,18 @@ public class DatabaseManager {
             ")"
         );
 
+        // Table notifications
+        stmt.execute(
+            "CREATE TABLE IF NOT EXISTS notifications (" +
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "    user_id INTEGER NOT NULL," +
+            "    message TEXT NOT NULL," +
+            "    date_envoi TEXT NOT NULL," +
+            "    lu INTEGER DEFAULT 0," +  // 0 = non lu, 1 = lu
+            "    FOREIGN KEY (user_id) REFERENCES users(id)" +
+            ")"
+        );
+
         stmt.close();
         System.out.println("[DB] Tables initialisées avec succès.");
     }
