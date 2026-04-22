@@ -22,8 +22,8 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void save(User user) {
-        String sql = "INSERT INTO users (nom, email, telephone, mot_de_passe, statut_compte, login_attempts, type) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (nom, email, telephone, mot_de_passe, statut_compte, login_attempts, type, total_revenu) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getNom());
             stmt.setString(2, user.getEmail());
@@ -32,6 +32,8 @@ public class UserDaoImpl implements UserDao {
             stmt.setString(5, user.getStatutCompte().name());
             stmt.setInt(6, user.getLoginAttempts());
             stmt.setString(7, user.getType());
+            double totalRevenu = (user instanceof Chauffeur) ? ((Chauffeur) user).getTotalRevenu() : 0.0;
+            stmt.setDouble(8, totalRevenu);
             stmt.executeUpdate();
 
             ResultSet keys = stmt.getGeneratedKeys();
@@ -107,7 +109,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public void update(User user) {
         String sql = "UPDATE users SET nom = ?, email = ?, telephone = ?, mot_de_passe = ?, " +
-                     "statut_compte = ?, login_attempts = ? WHERE id = ?";
+                     "statut_compte = ?, login_attempts = ?, total_revenu = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getNom());
             stmt.setString(2, user.getEmail());
@@ -115,7 +117,9 @@ public class UserDaoImpl implements UserDao {
             stmt.setString(4, user.getMotDePasse());
             stmt.setString(5, user.getStatutCompte().name());
             stmt.setInt(6, user.getLoginAttempts());
-            stmt.setInt(7, user.getId());
+            double totalRevenu = (user instanceof Chauffeur) ? ((Chauffeur) user).getTotalRevenu() : 0.0;
+            stmt.setDouble(7, totalRevenu);
+            stmt.setInt(8, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("[UserDao] Erreur update : " + e.getMessage());
@@ -163,6 +167,10 @@ public class UserDaoImpl implements UserDao {
         user.setMotDePasseHashed(rs.getString("mot_de_passe"));
         user.setStatutCompte(StatutCompte.valueOf(rs.getString("statut_compte")));
         user.setLoginAttempts(rs.getInt("login_attempts"));
+
+        if (user instanceof Chauffeur) {
+            ((Chauffeur) user).setTotalRevenu(rs.getDouble("total_revenu"));
+        }
 
         return user;
     }

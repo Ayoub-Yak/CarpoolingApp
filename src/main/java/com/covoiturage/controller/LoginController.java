@@ -50,7 +50,7 @@ public class LoginController {
                     notificationService.marquerCommeLu(n.getId());
                 }
 
-                // Redirect based on type
+                // Redirect based on type 
                 switch (user.getType()) {
                     case "ADMIN":
                         App.setRoot("admin_dashboard");

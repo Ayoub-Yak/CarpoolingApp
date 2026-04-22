@@ -3,6 +3,7 @@ package com.covoiturage.db;
 import com.covoiturage.model.User;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -68,6 +69,7 @@ public class DatabaseManager {
             "    mot_de_passe TEXT NOT NULL," +
             "    statut_compte TEXT DEFAULT 'ACTIF'," +
             "    login_attempts INTEGER DEFAULT 0," +
+            "    total_revenu REAL NOT NULL DEFAULT 0.0," +
             "    type TEXT NOT NULL" +  // PASSAGER, CHAUFFEUR, ADMIN
             ")"
         );
@@ -139,7 +141,33 @@ public class DatabaseManager {
         );
 
         stmt.close();
+
+        ensureUsersTotalRevenuColumn();
         System.out.println("[DB] Tables initialisées avec succès.");
+    }
+
+    /**
+     * Migration légère : ajoute users.total_revenu si la colonne manque
+     * (cas d'une base déjà existante).
+     */
+    private void ensureUsersTotalRevenuColumn() {
+        try (Statement stmt = connection.createStatement();
+                ResultSet rs = stmt.executeQuery("PRAGMA table_info(users)")) {
+            boolean hasTotalRevenu = false;
+            while (rs.next()) {
+                if ("total_revenu".equalsIgnoreCase(rs.getString("name"))) {
+                    hasTotalRevenu = true;
+                    break;
+                }
+            }
+
+            if (!hasTotalRevenu) {
+                stmt.execute("ALTER TABLE users ADD COLUMN total_revenu REAL NOT NULL DEFAULT 0.0");
+                System.out.println("[DB] Migration appliquée : colonne users.total_revenu ajoutée.");
+            }
+        } catch (SQLException e) {
+            System.err.println("[DB] Erreur migration users.total_revenu : " + e.getMessage());
+        }
     }
 
     // ── Seed Admin par défaut ──────────────────────────────────

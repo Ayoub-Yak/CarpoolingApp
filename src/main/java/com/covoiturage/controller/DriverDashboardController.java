@@ -48,7 +48,7 @@ public class DriverDashboardController {
     @FXML
     private Label trajetMessage;
 
-    // ── Mes Trajets ────────────────────────────────────────────
+    // ── Mes Trajets ────────────────────────────────────────────   soldeLabel
     @FXML
     private TableView<Trajet> mesTrajetsTable;
     @FXML
@@ -82,7 +82,7 @@ public class DriverDashboardController {
     @FXML
     private Label resMessage;
 
-    // ── Véhicules ──────────────────────────────────────────────
+    // ── Véhicules ──────────────────────────────────────────────  
     @FXML
     private TextField marqueField;
     @FXML
@@ -129,7 +129,7 @@ public class DriverDashboardController {
     private void initialize() {
         Chauffeur chauffeur = (Chauffeur) SessionManager.getInstance().getCurrentUser();
         welcomeLabel.setText("Bienvenue, " + chauffeur.getNom() + " 👋");
-        soldeLabel.setText("Solde: " + String.format("%.2f", chauffeur.getTotalRevenu()) + " DT");
+        refreshSoldeLabel();
 
         setupMesTrajetsTable();
         setupReservationsTable();
@@ -227,6 +227,7 @@ public class DriverDashboardController {
 
         loadMesTrajets();
         loadReservations();
+        refreshSoldeLabel();
     }
 
     // ── Réservations Reçues ────────────────────────────────────
@@ -234,6 +235,7 @@ public class DriverDashboardController {
     @FXML
     private void handleRefreshReservations() {
         loadReservations();
+        refreshSoldeLabel();
         resMessage.setText("Liste mise à jour.");
     }
 
@@ -262,6 +264,7 @@ public class DriverDashboardController {
         resMessage.setText("✅ Réservation acceptée et paiement capturé.");
         resMessage.setStyle("-fx-text-fill: #4ecca3;");
         loadReservations();
+        refreshSoldeLabel();
     }
 
     @FXML
@@ -286,6 +289,7 @@ public class DriverDashboardController {
         loadReservations();
         loadMesTrajets();
         loadNotifications();
+        refreshSoldeLabel();
     }
 
     // ── Véhicules ──────────────────────────────────────────────
@@ -413,6 +417,21 @@ public class DriverDashboardController {
         Chauffeur c = (Chauffeur) SessionManager.getInstance().getCurrentUser();
         List<Notification> list = notificationService.getAllNotifications(c.getId());
         notificationsTable.setItems(FXCollections.observableArrayList(list));
+    }
+
+    private void refreshSoldeLabel() {
+        User current = SessionManager.getInstance().getCurrentUser();
+        if (!(current instanceof Chauffeur)) {
+            soldeLabel.setText("Solde: 0.00 DT");
+            return;
+        }
+
+        User dbUser = authService.findById(current.getId());
+        Chauffeur chauffeurForDisplay = (dbUser instanceof Chauffeur) ? (Chauffeur) dbUser : (Chauffeur) current;
+
+        // Synchroniser la session pour conserver les données chauffeur à jour.
+        SessionManager.getInstance().setCurrentUser(chauffeurForDisplay);
+        soldeLabel.setText("Solde: " + String.format("%.2f", chauffeurForDisplay.getTotalRevenu()) + " DT");
     }
 
     // ── Notifications Handlers ───────────────────────────────

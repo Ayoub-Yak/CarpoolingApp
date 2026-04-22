@@ -5,6 +5,7 @@ import com.covoiturage.dao.ReservationDaoImpl;
 import com.covoiturage.dao.TrajetDao;
 import com.covoiturage.dao.TrajetDaoImpl;
 import com.covoiturage.model.Passager;
+import com.covoiturage.model.Paiement;
 import com.covoiturage.model.Reservation;
 import com.covoiturage.model.Trajet;
 import com.covoiturage.model.enums.StatutReservation;
@@ -22,11 +23,13 @@ public class ReservationService {
 
     private final ReservationDao reservationDao;
     private final TrajetDao trajetDao;
+    private final PaiementService paiementService;
     private final NotificationService notificationService;
 
     public ReservationService() {
         this.reservationDao = new ReservationDaoImpl();
         this.trajetDao = new TrajetDaoImpl();
+        this.paiementService = new PaiementService();
         this.notificationService = new NotificationService();
     }
 
@@ -137,10 +140,21 @@ public class ReservationService {
                 r.setStatut(StatutReservation.ANNULEE);
                 reservationDao.update(r);
 
+                // Remboursement intégral du passager.
+                Paiement paiement = paiementService.findByReservationId(r.getId());
+                double montantBase = trajet.getPrixPlace();
+                if (paiement != null) {
+                    montantBase = paiement.getMontant();
+                    paiementService.rembourser(paiement, montantBase);
+                }
+
                 if (heuresAvantDepart < 24) {
                     // Pénalité de 20% par passager
-                    double p = trajet.getPrixPlace() * 0.20;
+                    double p = montantBase * 0.20;
                     penaliteTotal += p;
+
+                    // Déduire la pénalité supplémentaire du solde chauffeur.
+                    paiementService.appliquerPenaliteSurReservation(r.getId(), p);
                 }
                 
                 // Notifier chaque passager
